@@ -65,9 +65,10 @@ function Login() {
                   Password
                 </label>
 
-                <span className="text-xs text-slate-400">
-                  Forgot password? Coming soon
-                </span>
+                <Link
+                    to="/forgot-password" className="text-xs text-slate-400 hover:text-indigo-600 cursor-pointer">
+                    Forgot password?
+                </Link>
               </div>
 
               <div className="relative">

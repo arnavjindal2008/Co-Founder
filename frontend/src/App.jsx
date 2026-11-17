@@ -14,6 +14,8 @@ import Applications from './pages/Applications';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import Messages from './pages/Messages';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 
 function App() {
@@ -33,6 +35,8 @@ function App() {
       <Route path="/settings" element={<Settings />} />
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/messages" element={<Messages />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
     </Routes>
   );
 }
