@@ -12,6 +12,9 @@ import ProjectDetails from './pages/ProjectDetails';
 import CreateProject from './pages/CreateProject';
 import Applications from './pages/Applications';
 import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
+import Messages from './pages/Messages';
+
 
 function App() {
   return (
@@ -28,6 +31,8 @@ function App() {
       <Route path="/create-project" element={<CreateProject />} />
       <Route path="/applications" element={<Applications />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/notifications" element={<Notifications />} />
+      <Route path="/messages" element={<Messages />} />
     </Routes>
   );
 }
