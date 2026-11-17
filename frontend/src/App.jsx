@@ -7,7 +7,8 @@ import Dashboard from './pages/Dashboard';
 import DiscoverPeople from './pages/DiscoverPeople';
 import DiscoverProjects from './pages/DiscoverProjects';
 import Profile from './pages/Profile';
-
+import Connections from './pages/Connections';
+import ProjectDetails from './pages/ProjectDetails';
 
 function App() {
   return (
@@ -19,6 +20,8 @@ function App() {
       <Route path="/discover-people" element={<DiscoverPeople />} />
       <Route path="/discover-projects" element={<DiscoverProjects />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/connections" element={<Connections />} />
+      <Route path="/project-details" element={<ProjectDetails />} />
     </Routes>
   );
 }
