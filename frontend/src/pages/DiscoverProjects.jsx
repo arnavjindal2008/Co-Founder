@@ -1,318 +1,318 @@
 import { useState } from 'react';
 import {
   Search,
-  SlidersHorizontal,
-  MapPin,
+  Plus,
   Users,
+  MapPin,
   Clock,
-  Briefcase,
   ArrowRight,
-  Check,
-  FolderKanban
+  FolderKanban,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import Sidebar from '../components/Sidebar';
 import DashboardNavbar from '../components/DashboardNavbar';
 
+const initialProjects = [
+  {
+    id: 1,
+    title: 'SkillBridge',
+    category: 'Education Technology',
+    description:
+      'A platform connecting students with mentors and real-world learning opportunities.',
+    owner: 'Aarav Sharma',
+    location: 'Delhi, India',
+    teamSize: 3,
+    stage: 'MVP',
+    commitment: 'Part-time',
+    skills: ['React', 'Node.js', 'PostgreSQL'],
+    status: 'Open',
+  },
+  {
+    id: 2,
+    title: 'HealthConnect',
+    category: 'Healthcare',
+    description:
+      'Making healthcare more accessible through digital health services.',
+    owner: 'Riya Mehta',
+    location: 'Gurugram, India',
+    teamSize: 2,
+    stage: 'Idea',
+    commitment: 'Full-time',
+    skills: ['UI/UX', 'React', 'Marketing'],
+    status: 'Open',
+  },
+  {
+    id: 3,
+    title: 'EcoTrack',
+    category: 'Social Impact',
+    description:
+      'Helping individuals track their carbon footprint and make sustainable choices.',
+    owner: 'Kabir Verma',
+    location: 'Mumbai, India',
+    teamSize: 4,
+    stage: 'Prototype',
+    commitment: 'Part-time',
+    skills: ['JavaScript', 'Python', 'Design'],
+    status: 'Open',
+  },
+  {
+    id: 4,
+    title: 'FinSmart',
+    category: 'Finance',
+    description:
+      'A simple financial planning platform designed for college students.',
+    owner: 'Ananya Singh',
+    location: 'Bengaluru, India',
+    teamSize: 2,
+    stage: 'Research',
+    commitment: 'Flexible',
+    skills: ['Finance', 'React', 'Node.js'],
+    status: 'Open',
+  },
+  {
+    id: 5,
+    title: 'AI Resume Builder',
+    category: 'Technology',
+    description:
+      'A tool that helps students create professional resumes and improve their job applications.',
+    owner: 'Dev Malhotra',
+    location: 'Noida, India',
+    teamSize: 3,
+    stage: 'MVP',
+    commitment: 'Part-time',
+    skills: ['AI', 'Python', 'React'],
+    status: 'Open',
+  },
+  {
+    id: 6,
+    title: 'LocalKart',
+    category: 'E-commerce',
+    description:
+      'Connecting local shop owners with customers through a simple online marketplace.',
+    owner: 'Ishita Kapoor',
+    location: 'Jaipur, India',
+    teamSize: 5,
+    stage: 'Launched',
+    commitment: 'Full-time',
+    skills: ['Marketing', 'Node.js', 'Business'],
+    status: 'Open',
+  },
+];
+
 function DiscoverProjects() {
+  const [projects, setProjects] = useState(initialProjects);
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('All');
-  const [applications, setApplications] = useState([]);
+  const [category, setCategory] = useState('All Categories');
+  const [status, setStatus] = useState('All');
+  const [appliedProjects, setAppliedProjects] = useState([]);
 
-  const projects = [
-    {
-      id: 1,
-      title: 'AI Resume Analyzer',
-      description: 'Building an AI-powered platform that analyzes resumes and provides personalized career improvement suggestions.',
-      category: 'Technology',
-      status: 'Looking for members',
-      owner: 'Aarav Sharma',
-      location: 'Remote',
-      teamSize: 3,
-      positions: 2,
-      skills: ['React', 'Node.js', 'Machine Learning'],
-      time: '2 days ago',
-      color: 'bg-indigo-100 text-indigo-700',
-      initials: 'AI'
-    },
-    {
-      id: 2,
-      title: 'Campus Connect',
-      description: 'A platform that helps university students connect, collaborate and participate in campus activities.',
-      category: 'Education',
-      status: 'Looking for members',
-      owner: 'Diya Mehta',
-      location: 'Delhi, India',
-      teamSize: 2,
-      positions: 3,
-      skills: ['UI/UX', 'React', 'PostgreSQL'],
-      time: '3 days ago',
-      color: 'bg-blue-100 text-blue-700',
-      initials: 'CC'
-    },
-    {
-      id: 3,
-      title: 'EcoTrack',
-      description: 'Creating a sustainability platform that helps individuals track and reduce their carbon footprint.',
-      category: 'Environment',
-      status: 'In progress',
-      owner: 'Kabir Verma',
-      location: 'Remote',
-      teamSize: 4,
-      positions: 1,
-      skills: ['Python', 'Data Analysis', 'Design'],
-      time: '5 days ago',
-      color: 'bg-green-100 text-green-700',
-      initials: 'ET'
-    },
-    {
-      id: 4,
-      title: 'StartupHub',
-      description: 'A community platform connecting aspiring entrepreneurs with mentors, investors and potential co-founders.',
-      category: 'Business',
-      status: 'Looking for members',
-      owner: 'Ananya Gupta',
-      location: 'Bangalore, India',
-      teamSize: 3,
-      positions: 2,
-      skills: ['Marketing', 'Business Strategy', 'React'],
-      time: '1 week ago',
-      color: 'bg-purple-100 text-purple-700',
-      initials: 'SH'
-    },
-    {
-      id: 5,
-      title: 'FitLife',
-      description: 'Developing a fitness application that helps users build healthy habits and track their daily progress.',
-      category: 'Health',
-      status: 'Looking for members',
-      owner: 'Rohan Kapoor',
-      location: 'Remote',
-      teamSize: 2,
-      positions: 2,
-      skills: ['React Native', 'UI/UX', 'Node.js'],
-      time: '1 week ago',
-      color: 'bg-orange-100 text-orange-700',
-      initials: 'FL'
-    },
-    {
-      id: 6,
-      title: 'Local Market',
-      description: 'An online marketplace that helps local businesses reach more customers through digital storefronts.',
-      category: 'Business',
-      status: 'Completed',
-      owner: 'Ishita Rao',
-      location: 'Mumbai, India',
-      teamSize: 5,
-      positions: 0,
-      skills: ['Marketing', 'E-commerce', 'Design'],
-      time: '2 weeks ago',
-      color: 'bg-pink-100 text-pink-700',
-      initials: 'LM'
-    }
-  ];
+  function handleApply(id) {
+    setAppliedProjects((previous) =>
+      previous.includes(id) ? previous : [...previous, id]
+    );
+  }
 
-  const categories = [
-    'All',
-    'Technology',
-    'Education',
-    'Business',
-    'Environment',
-    'Health'
-  ];
-
-  const statuses = [
-    'All',
-    'Looking for members',
-    'In progress',
-    'Completed'
-  ];
+  function clearFilters() {
+    setSearch('');
+    setCategory('All Categories');
+    setStatus('All');
+  }
 
   const filteredProjects = projects.filter((project) => {
-    const searchText = search.toLowerCase();
+    const searchValue = search.toLowerCase();
 
     const matchesSearch =
-      project.title.toLowerCase().includes(searchText) ||
-      project.description.toLowerCase().includes(searchText) ||
-      project.owner.toLowerCase().includes(searchText) ||
+      project.title.toLowerCase().includes(searchValue) ||
+      project.description.toLowerCase().includes(searchValue) ||
+      project.owner.toLowerCase().includes(searchValue) ||
       project.skills.some((skill) =>
-        skill.toLowerCase().includes(searchText)
+        skill.toLowerCase().includes(searchValue)
       );
 
     const matchesCategory =
-      selectedCategory === 'All' ||
-      project.category === selectedCategory;
+      category === 'All Categories' || project.category === category;
 
     const matchesStatus =
-      selectedStatus === 'All' ||
-      project.status === selectedStatus;
+      status === 'All' || project.status === status;
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
-
-  function handleApply(projectId) {
-    setApplications((previous) => [...previous, projectId]);
-  }
 
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
 
-      <div className="min-h-screen md:ml-64">
+      <div className="min-h-screen lg:ml-64">
         <DashboardNavbar />
 
         <main className="mx-auto max-w-7xl p-5 sm:p-8">
 
-          {/* Heading */}
-          <div className="mb-8">
-            <p className="text-xs font-bold tracking-widest text-indigo-600">
-              FIND YOUR NEXT OPPORTUNITY
-            </p>
+          {/* Page Heading */}
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Discover Projects
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                Find exciting startup ideas and build something meaningful.
+              </p>
+            </div>
 
-            <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
-              Discover Projects
-            </h1>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Explore exciting ideas and find projects that match your skills.
-            </p>
+            <Link
+              to="/create-project"
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
+            >
+              <Plus size={18} />
+              Create Project
+            </Link>
           </div>
 
-          {/* Search and filters */}
-          <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5">
+          {/* Search and Filters */}
+          <section className="mb-7 rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 
-            <div className="grid gap-4 md:grid-cols-3">
-
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 md:col-span-1">
-                <Search size={19} className="text-slate-400" />
+              <div className="relative md:col-span-1">
+                <Search
+                  size={18}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
 
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search projects or skills..."
-                  className="h-12 w-full text-sm outline-none"
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search projects, skills..."
+                  className="w-full rounded-xl border border-slate-200 py-3 pl-10 pr-4 text-sm outline-none focus:border-indigo-500"
                 />
               </div>
 
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 px-4">
-                <SlidersHorizontal size={18} className="text-slate-400" />
-
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="h-12 w-full bg-transparent text-sm outline-none"
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category === 'All' ? 'All categories' : category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-indigo-500"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500"
               >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status === 'All' ? 'All project statuses' : status}
-                  </option>
-                ))}
+                <option>All Categories</option>
+                <option>Technology</option>
+                <option>Education Technology</option>
+                <option>Healthcare</option>
+                <option>Finance</option>
+                <option>E-commerce</option>
+                <option>Social Impact</option>
+                <option>Artificial Intelligence</option>
               </select>
 
+              <select
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500"
+              >
+                <option value="All">All Status</option>
+                <option value="Open">Open</option>
+                <option value="Closed">Closed</option>
+              </select>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-slate-500">
-                Showing <span className="font-bold text-slate-800">{filteredProjects.length}</span> projects
+                Showing {filteredProjects.length} projects
               </p>
 
               <button
-                type="button"
-                onClick={() => {
-                  setSearch('');
-                  setSelectedCategory('All');
-                  setSelectedStatus('All');
-                }}
+                onClick={clearFilters}
                 className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
               >
-                Clear filters
+                Clear Filters
               </button>
             </div>
           </section>
 
-          {/* Project cards */}
-          <section className="grid gap-6 lg:grid-cols-2">
+          {/* Project Cards */}
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
-            {filteredProjects.map((project) => {
-              const isApplied = applications.includes(project.id);
-              const isOpen = project.positions > 0;
+            {filteredProjects.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center lg:col-span-2">
+                <FolderKanban
+                  size={36}
+                  className="mx-auto text-slate-400"
+                />
 
-              return (
-                <article
-                  key={project.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                <h3 className="mt-4 font-bold text-slate-900">
+                  No projects found
+                </h3>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  Try changing your search or filters.
+                </p>
+
+                <button
+                  onClick={clearFilters}
+                  className="mt-4 text-sm font-semibold text-indigo-600"
                 >
-                  {/* Project heading */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`grid h-12 w-12 place-items-center rounded-xl text-sm font-extrabold ${project.color}`}>
-                        {project.initials}
+                  Clear Filters
+                </button>
+              </div>
+            ) : (
+              filteredProjects.map((project) => (
+                <div
+                  key={project.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg"
+                >
+                  {/* Card Heading */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                        <FolderKanban size={23} />
                       </div>
 
                       <div>
-                        <h2 className="text-lg font-bold text-slate-900">
+                        <h2 className="font-bold text-slate-900">
                           {project.title}
                         </h2>
 
                         <p className="mt-1 text-xs text-slate-500">
-                          Created by {project.owner}
+                          {project.category}
                         </p>
                       </div>
                     </div>
 
-                    <span className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
-                      project.status === 'Completed'
-                        ? 'bg-slate-100 text-slate-600'
-                        : project.status === 'In progress'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'bg-green-50 text-green-700'
-                    }`}>
+                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
                       {project.status}
                     </span>
                   </div>
 
                   {/* Description */}
-                  <p className="mt-5 text-sm leading-7 text-slate-600">
+                  <p className="mt-5 text-sm leading-6 text-slate-600">
                     {project.description}
                   </p>
 
-                  {/* Project details */}
-                  <div className="mt-5 flex flex-wrap gap-x-5 gap-y-3 text-xs text-slate-500">
-                    <span className="flex items-center gap-2">
+                  {/* Project Info */}
+                  <div className="mt-5 grid grid-cols-2 gap-3 border-y border-slate-100 py-4">
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <Users size={15} />
+                      {project.teamSize} Team Members
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
                       <MapPin size={15} />
                       {project.location}
-                    </span>
+                    </div>
 
-                    <span className="flex items-center gap-2">
-                      <Users size={15} />
-                      {project.teamSize} members
-                    </span>
-
-                    <span className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
                       <Clock size={15} />
-                      {project.time}
-                    </span>
+                      {project.commitment}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <Briefcase size={15} />
+                      {project.stage}
+                    </div>
                   </div>
 
-                  {/* Required skills */}
-                  <div className="mt-6">
-                    <p className="mb-3 text-xs font-bold text-slate-700">
-                      REQUIRED SKILLS
+                  {/* Skills */}
+                  <div className="mt-4">
+                    <p className="mb-2 text-xs font-semibold text-slate-500">
+                      Required Skills
                     </p>
 
                     <div className="flex flex-wrap gap-2">
@@ -327,70 +327,41 @@ function DiscoverProjects() {
                     </div>
                   </div>
 
-                  {/* Positions */}
-                  <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-5">
+                  {/* Founder */}
+                  <div className="mt-5 flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs text-slate-500">
-                        Available positions
+                      <p className="text-xs text-slate-400">
+                        Project Founder
                       </p>
-
-                      <p className="mt-1 text-sm font-bold text-slate-800">
-                        {project.positions} open {project.positions === 1 ? 'position' : 'positions'}
+                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                        {project.owner}
                       </p>
                     </div>
 
-                    {isOpen ? (
-                      <button
-                        type="button"
-                        disabled={isApplied}
-                        onClick={() => handleApply(project.id)}
-                        className={`inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${
-                          isApplied
-                            ? 'cursor-not-allowed bg-green-50 text-green-700'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                        }`}
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        to="/project-details"
+                        className="flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                       >
-                        {isApplied ? (
-                          <>
-                            <Check size={17} />
-                            Applied
-                          </>
-                        ) : (
-                          <>
-                            Apply Now
-                            <ArrowRight size={17} />
-                          </>
-                        )}
+                        Details
+                        <ArrowRight size={14} />
+                      </Link>
+
+                      <button
+                        onClick={() => handleApply(project.id)}
+                        disabled={appliedProjects.includes(project.id)}
+                        className="rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-green-600"
+                      >
+                        {appliedProjects.includes(project.id)
+                          ? 'Applied'
+                          : 'Apply Now'}
                       </button>
-                    ) : (
-                      <span className="rounded-xl bg-slate-100 px-4 py-3 text-xs font-semibold text-slate-500">
-                        Not accepting applications
-                      </span>
-                    )}
+                    </div>
                   </div>
-                </article>
-              );
-            })}
-
-          </section>
-
-          {/* No results */}
-          {filteredProjects.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
-              <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-slate-100 text-slate-500">
-                <FolderKanban size={25} />
-              </div>
-
-              <h3 className="font-bold text-slate-800">
-                No projects found
-              </h3>
-
-              <p className="mt-2 text-sm text-slate-500">
-                Try changing your search or filters.
-              </p>
-            </div>
-          )}
-
+                </div>
+              ))
+            )}
+          </div>
         </main>
       </div>
     </div>

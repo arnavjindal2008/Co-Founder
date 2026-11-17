@@ -1,4 +1,5 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+
 import {
   LayoutDashboard,
   Users,
@@ -8,71 +9,137 @@ import {
   Bell,
   Settings,
   LogOut,
-  Rocket
+  Rocket,
+  FileText,
 } from 'lucide-react';
 
 function Sidebar() {
-  const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Discover People', path: '/discover-people', icon: Users },
-    { name: 'Discover Projects', path: '/discover-projects', icon: FolderKanban },
-    { name: 'My Profile', path: '/profile', icon: UserRound },
-    { name: 'Connections', path: '/connections', icon: Users },
-    { name: 'Messages', path: '/messages', icon: MessageCircle },
-    { name: 'Notifications', path: '/notifications', icon: Bell }
+  const navigate = useNavigate();
+
+  const navigation = [
+    {
+      name: 'Dashboard',
+      path: '/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      name: 'Discover People',
+      path: '/discover-people',
+      icon: Users,
+    },
+    {
+      name: 'Discover Projects',
+      path: '/discover-projects',
+      icon: FolderKanban,
+    },
+    {
+      name: 'My Profile',
+      path: '/profile',
+      icon: UserRound,
+    },
+    {
+      name: 'Connections',
+      path: '/connections',
+      icon: Users,
+    },
+    {
+      name: 'Applications',
+      path: '/applications',
+      icon: FileText,
+    },
+    {
+      name: 'Messages',
+      path: '/messages',
+      icon: MessageCircle,
+    },
+    {
+      name: 'Notifications',
+      path: '/notifications',
+      icon: Bell,
+    },
   ];
 
+  function handleLogout() {
+    navigate('/login');
+  }
+
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-slate-200 bg-white px-4 py-6">
+    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r border-slate-200 bg-white lg:flex">
 
-      <Link to="/" className="mb-10 flex items-center gap-2 px-3 text-xl font-extrabold text-indigo-600">
-        <Rocket size={25} />
-        CoFounder
-      </Link>
+      {/* Logo */}
+      <div className="flex h-20 items-center gap-3 border-b border-slate-100 px-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
+          <Rocket size={22} />
+        </div>
 
-      <p className="mb-3 px-3 text-xs font-bold tracking-wider text-slate-400">
-        WORKSPACE
-      </p>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">
+            CoFounder
+          </h1>
+          <p className="text-xs text-slate-400">
+            Build together
+          </p>
+        </div>
+      </div>
 
-      <nav className="flex flex-col gap-1">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <p className="mb-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Main Menu
+        </p>
 
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-indigo-50 text-indigo-700'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'
-                }`
-              }
-            >
-              <Icon size={19} />
-              {item.name}
-            </NavLink>
-          );
-        })}
-      </nav>
+        <nav className="space-y-1">
+          {navigation.map((item) => {
+            const Icon = item.icon;
 
-      <div className="mt-auto border-t border-slate-100 pt-5">
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                    isActive
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`
+                }
+              >
+                <Icon size={19} />
+                {item.name}
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        {/* Settings */}
+        <p className="mb-4 mt-9 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Preferences
+        </p>
+
         <NavLink
           to="/settings"
-          className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-600 hover:bg-slate-50"
+          className={({ isActive }) =>
+            `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+              isActive
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            }`
+          }
         >
           <Settings size={19} />
           Settings
         </NavLink>
+      </div>
 
-        <Link
-          to="/login"
-          className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600"
+      {/* User / Logout */}
+      <div className="border-t border-slate-100 p-4">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-red-50 hover:text-red-600"
         >
           <LogOut size={19} />
           Logout
-        </Link>
+        </button>
       </div>
     </aside>
   );

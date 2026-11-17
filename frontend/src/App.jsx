@@ -9,6 +9,9 @@ import DiscoverProjects from './pages/DiscoverProjects';
 import Profile from './pages/Profile';
 import Connections from './pages/Connections';
 import ProjectDetails from './pages/ProjectDetails';
+import CreateProject from './pages/CreateProject';
+import Applications from './pages/Applications';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -22,6 +25,9 @@ function App() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/connections" element={<Connections />} />
       <Route path="/project-details" element={<ProjectDetails />} />
+      <Route path="/create-project" element={<CreateProject />} />
+      <Route path="/applications" element={<Applications />} />
+      <Route path="/settings" element={<Settings />} />
     </Routes>
   );
 }
