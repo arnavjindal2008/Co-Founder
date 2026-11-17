@@ -16,6 +16,8 @@ import Notifications from './pages/Notifications';
 import Messages from './pages/Messages';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import ManageProjects from './pages/ManageProjects';
+import NotFound from './pages/NotFound';
 
 
 function App() {
@@ -37,6 +39,8 @@ function App() {
       <Route path="/messages" element={<Messages />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/manage-projects" element={<ManageProjects />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

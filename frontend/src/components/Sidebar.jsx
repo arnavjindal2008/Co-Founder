@@ -57,6 +57,11 @@ function Sidebar() {
       path: '/notifications',
       icon: Bell,
     },
+    {
+      name: 'Manage Projects',
+      path: '/manage-projects',
+      icon: FolderKanban
+    },
   ];
 
   function handleLogout() {
