@@ -1,24 +1,10 @@
 BEGIN;
 
--- 1. DROP EXISTING TABLES
--- Drop child tables before parent tables.
+-- Initial database schema for Co-Founder.
+-- Creates all core tables, relationships, constraints, and indexes.
+-- This migration does not drop existing tables.
 
-DROP TABLE IF EXISTS notifications CASCADE;
-DROP TABLE IF EXISTS project_members CASCADE;
-DROP TABLE IF EXISTS applications CASCADE;
-DROP TABLE IF EXISTS connections CASCADE;
-DROP TABLE IF EXISTS project_roles CASCADE;
-DROP TABLE IF EXISTS project_skills CASCADE;
-DROP TABLE IF EXISTS projects CASCADE;
-DROP TABLE IF EXISTS user_interests CASCADE;
-DROP TABLE IF EXISTS user_skills CASCADE;
-DROP TABLE IF EXISTS interests CASCADE;
-DROP TABLE IF EXISTS skills CASCADE;
-DROP TABLE IF EXISTS profiles CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-
-
--- 2. USERS
+-- 1. USERS
 -- Stores user account and authentication information.
 
 CREATE TABLE users (
@@ -31,7 +17,7 @@ CREATE TABLE users (
 );
 
 
--- 3. PROFILES
+-- 2. PROFILES
 -- One user can have one professional profile.
 
 CREATE TABLE profiles (
@@ -56,7 +42,7 @@ CREATE TABLE profiles (
 );
 
 
--- 4. SKILLS
+-- 3. SKILLS
 -- Stores available technical and non-technical skills.
 
 CREATE TABLE skills (
@@ -66,7 +52,7 @@ CREATE TABLE skills (
 );
 
 
--- 5. USER_SKILLS
+-- 4. USER_SKILLS
 -- Many-to-many relationship between users and skills.
 
 CREATE TABLE user_skills (
@@ -87,7 +73,7 @@ CREATE TABLE user_skills (
 );
 
 
--- 6. INTERESTS
+-- 5. INTERESTS
 -- Stores areas of interest such as EdTech and FinTech.
 
 CREATE TABLE interests (
@@ -97,7 +83,7 @@ CREATE TABLE interests (
 );
 
 
--- 7. USER_INTERESTS
+-- 6. USER_INTERESTS
 -- Many-to-many relationship between users and interests.
 
 CREATE TABLE user_interests (
@@ -118,7 +104,7 @@ CREATE TABLE user_interests (
 );
 
 
--- 8. PROJECTS
+-- 7. PROJECTS
 -- Stores startup and project information.
 
 CREATE TABLE projects (
@@ -140,7 +126,7 @@ CREATE TABLE projects (
 );
 
 
--- 9. PROJECT_SKILLS
+-- 8. PROJECT_SKILLS
 -- Many-to-many relationship between projects and skills.
 
 CREATE TABLE project_skills (
@@ -161,7 +147,7 @@ CREATE TABLE project_skills (
 );
 
 
--- 10. PROJECT_ROLES
+-- 9. PROJECT_ROLES
 -- Stores roles and the number of members required.
 
 CREATE TABLE project_roles (
@@ -181,7 +167,7 @@ CREATE TABLE project_roles (
 );
 
 
--- 11. CONNECTIONS
+-- 10. CONNECTIONS
 -- Stores connection requests between users.
 
 CREATE TABLE connections (
@@ -207,9 +193,8 @@ CREATE TABLE connections (
 );
 
 
--- 12. APPLICATIONS
+-- 11. APPLICATIONS
 -- Stores applications submitted by users to projects.
--- The applicant can optionally specify the role they want.
 
 CREATE TABLE applications (
     id SERIAL PRIMARY KEY,
@@ -235,7 +220,7 @@ CREATE TABLE applications (
 );
 
 
--- 13. PROJECT_MEMBERS
+-- 12. PROJECT_MEMBERS
 -- Stores users who are part of a project team.
 
 CREATE TABLE project_members (
@@ -257,7 +242,7 @@ CREATE TABLE project_members (
 );
 
 
--- 14. NOTIFICATIONS
+-- 13. NOTIFICATIONS
 -- Stores notifications received by users.
 
 CREATE TABLE notifications (
@@ -279,8 +264,7 @@ CREATE TABLE notifications (
 );
 
 
--- 15. INDEXES
--- Indexes on foreign keys used for joins and filtering.
+-- 14. INDEXES
 
 CREATE INDEX idx_profiles_user_id
 ON profiles(user_id);
