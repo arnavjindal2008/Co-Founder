@@ -11,11 +11,12 @@ import {
 
 const router = express.Router();
 
-router.use(authMiddleware);
+router.post('/', authMiddleware, createProject);
 
-router.post('/', createProject);
-router.get('/', getProjects);
-router.get('/mine', getMyProjects);
-router.delete('/:id', deleteProject);
+router.get('/', authMiddleware, getProjects);
+
+router.get('/mine', authMiddleware, getMyProjects);
+
+router.delete('/:id', authMiddleware, deleteProject);
 
 export default router;

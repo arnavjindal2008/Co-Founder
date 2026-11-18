@@ -1,13 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
 
 import pool from './config/db.js';
-
 import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
-
-dotenv.config();
 
 const app = express();
 
