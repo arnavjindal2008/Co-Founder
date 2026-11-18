@@ -2,14 +2,16 @@ import pool from '../config/db.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+// =====================================
 // SIGNUP API
+// =====================================
+
 export const signup = async (req, res) => {
   const client = await pool.connect();
 
   try {
     const { name, email, password } = req.body;
 
-    // Check required fields
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -17,7 +19,6 @@ export const signup = async (req, res) => {
       });
     }
 
-    // Check password length
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -35,7 +36,6 @@ export const signup = async (req, res) => {
       });
     }
 
-    // Check whether email already exists
     const existingUser = await client.query(
       'SELECT id FROM users WHERE email = $1',
       [cleanEmail]
@@ -48,13 +48,10 @@ export const signup = async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Start transaction
     await client.query('BEGIN');
 
-    // Create user
     const result = await client.query(
       `INSERT INTO users (email, password_hash)
        VALUES ($1, $2)
@@ -64,14 +61,12 @@ export const signup = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Create profile
     await client.query(
       `INSERT INTO profiles (user_id, full_name)
        VALUES ($1, $2)`,
       [user.id, cleanName]
     );
 
-    // Save both changes
     await client.query('COMMIT');
 
     return res.status(201).json({
@@ -101,12 +96,14 @@ export const signup = async (req, res) => {
 };
 
 
+// =====================================
 // LOGIN API
+// =====================================
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check required fields
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -114,14 +111,12 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check JWT secret
     if (!process.env.JWT_SECRET) {
       throw new Error('JWT_SECRET is missing in .env');
     }
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // Find user
     const result = await pool.query(
       `SELECT
         u.id,
@@ -143,7 +138,6 @@ export const login = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Verify password
     const isPasswordCorrect = await bcrypt.compare(
       password,
       user.password_hash
@@ -156,7 +150,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       {
         id: user.id,
@@ -185,6 +178,56 @@ export const login = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error during login',
+    });
+  }
+};
+
+
+// =====================================
+// GET LOGGED-IN USER API
+// =====================================
+
+export const getMe = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+        u.id,
+        u.email,
+        u.email_verified,
+        p.full_name,
+        p.profile_picture,
+        p.headline,
+        p.bio,
+        p.education,
+        p.experience,
+        p.github_url,
+        p.portfolio_url,
+        p.availability,
+        p.collaboration_preferences
+       FROM users u
+       JOIN profiles p ON u.id = p.user_id
+       WHERE u.id = $1`,
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error('Get user error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while fetching user',
     });
   }
 };

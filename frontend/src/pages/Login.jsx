@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Rocket, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,16 +38,15 @@ const Login = () => {
         return;
       }
 
-      // Save JWT token and user details
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Save user and token in AuthContext
+      login(data.user, data.token);
 
       // Redirect to dashboard
       navigate('/dashboard');
 
     } catch (error) {
       console.error('Login error:', error);
-      setError('Unable to connect to the server. Please try again.');
+      setError('Unable to connect to server. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
-
       <div className="w-full max-w-lg">
 
         {/* Logo */}
@@ -136,14 +136,14 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Error message */}
+            {/* Error */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg p-3 text-sm">
                 {error}
               </div>
             )}
 
-            {/* Login button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
