@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   ArrowLeft,
@@ -16,21 +15,70 @@ import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import DashboardNavbar from '../components/DashboardNavbar';
 
+// Find the JWT saved by the login system.
+function getAuthToken() {
+  const possibleKeys = [
+    'token',
+    'authToken',
+    'accessToken',
+    'jwtToken',
+  ];
+
+  for (const key of possibleKeys) {
+    const value = localStorage.getItem(key);
+
+    if (value) {
+      try {
+        const parsed = JSON.parse(value);
+
+        if (typeof parsed === 'string' && parsed.split('.').length === 3) {
+          return parsed;
+        }
+
+        if (parsed?.token) return parsed.token;
+        if (parsed?.accessToken) return parsed.accessToken;
+      } catch {
+        if (value.split('.').length === 3) {
+          return value;
+        }
+      }
+    }
+  }
+
+  // Also check stored objects used by some authentication contexts.
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    const value = localStorage.getItem(key);
+
+    try {
+      const parsed = JSON.parse(value);
+
+      if (parsed?.token) return parsed.token;
+      if (parsed?.accessToken) return parsed.accessToken;
+    } catch {
+      // Ignore values that are not JSON.
+    }
+  }
+
+  return null;
+}
+
+const initialProject = {
+  title: '',
+  category: '',
+  description: '',
+  problem: '',
+  solution: '',
+  goals: '',
+  stage: 'Idea',
+  commitment: 'Part-time',
+  location: '',
+};
+
 function CreateProject() {
   const navigate = useNavigate();
 
-  const [project, setProject] = useState({
-    title: '',
-    category: '',
-    description: '',
-    problem: '',
-    solution: '',
-    goals: '',
-    stage: 'Idea',
-    commitment: 'Part-time',
-    location: '',
-  });
-
+  const [project, setProject] = useState(initialProject);
   const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState('');
 
@@ -41,6 +89,8 @@ function CreateProject() {
   });
 
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -92,20 +142,78 @@ function CreateProject() {
     );
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setError('');
 
     if (skills.length === 0) {
-      alert('Please add at least one required skill.');
+      setError('Please add at least one required skill.');
       return;
     }
 
-    setSuccess(true);
+    const token = getAuthToken();
 
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
+    if (!token) {
+      setError('Your login session was not found. Please log in again.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...project,
+          skills,
+          roles: roles.map((role) => ({
+            title: role.title,
+            openings: role.openings,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'Unable to create project.');
+        return;
+      }
+
+      if (!data.success) {
+        setError(data.message || 'Project creation failed.');
+        return;
+      }
+
+      setSuccess(true);
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    } catch (requestError) {
+      console.error('Create project error:', requestError);
+      setError('Unable to connect to the server. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function resetForm() {
+    setProject(initialProject);
+    setSkills([]);
+    setNewSkill('');
+    setRoles([]);
+    setNewRole({
+      title: '',
+      openings: '1',
     });
+    setError('');
+    setSuccess(false);
   }
 
   if (success) {
@@ -123,45 +231,36 @@ function CreateProject() {
               </div>
 
               <h1 className="mt-5 text-2xl font-bold text-slate-900">
-                Project Created!
+                Project Published!
               </h1>
 
               <p className="mt-3 text-sm leading-6 text-slate-500">
-                Your project form has been completed successfully.
-                Backend integration will allow you to publish it and
-                make it visible to other founders.
+                Your project has been saved successfully. You can now
+                view and manage it from your projects page.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <button
-                  onClick={() => navigate('/discover-projects')}
+                  onClick={() => navigate('/manage-projects')}
                   className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
                 >
-                  Discover Projects
+                  Manage My Projects
                 </button>
 
                 <button
-                  onClick={() => {
-                    setProject({
-                      title: '',
-                      category: '',
-                      description: '',
-                      problem: '',
-                      solution: '',
-                      goals: '',
-                      stage: 'Idea',
-                      commitment: 'Part-time',
-                      location: '',
-                    });
-                    setSkills([]);
-                    setRoles([]);
-                    setSuccess(false);
-                  }}
+                  onClick={() => navigate('/discover-projects')}
                   className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"
                 >
-                  Create Another
+                  Discover Projects
                 </button>
               </div>
+
+              <button
+                onClick={resetForm}
+                className="mt-5 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+              >
+                Create Another Project
+              </button>
             </div>
           </main>
         </div>
@@ -189,6 +288,7 @@ function CreateProject() {
             <h1 className="text-2xl font-bold text-slate-900">
               Create a Project
             </h1>
+
             <p className="mt-2 text-sm text-slate-500">
               Share your idea, build your team and turn your vision into reality.
             </p>
@@ -201,6 +301,7 @@ function CreateProject() {
                 <div className="rounded-xl bg-indigo-50 p-3 text-indigo-600">
                   <Lightbulb size={21} />
                 </div>
+
                 <div>
                   <h2 className="font-bold text-slate-900">
                     Basic Information
@@ -216,6 +317,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Project Name *
                   </label>
+
                   <input
                     name="title"
                     value={project.title}
@@ -231,6 +333,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Category *
                   </label>
+
                   <select
                     name="category"
                     value={project.category}
@@ -254,6 +357,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Short Description *
                   </label>
+
                   <textarea
                     name="description"
                     value={project.description}
@@ -264,6 +368,7 @@ function CreateProject() {
                     placeholder="Explain your project in a few sentences..."
                     className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500"
                   />
+
                   <p className="mt-1 text-right text-xs text-slate-400">
                     {project.description.length}/300
                   </p>
@@ -277,6 +382,7 @@ function CreateProject() {
                 <div className="rounded-xl bg-purple-50 p-3 text-purple-600">
                   <Target size={21} />
                 </div>
+
                 <div>
                   <h2 className="font-bold text-slate-900">
                     Project Details
@@ -292,6 +398,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Problem Statement *
                   </label>
+
                   <textarea
                     name="problem"
                     value={project.problem}
@@ -307,6 +414,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Proposed Solution *
                   </label>
+
                   <textarea
                     name="solution"
                     value={project.solution}
@@ -322,6 +430,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Project Goals
                   </label>
+
                   <textarea
                     name="goals"
                     value={project.goals}
@@ -340,6 +449,7 @@ function CreateProject() {
                 <div className="rounded-xl bg-green-50 p-3 text-green-600">
                   <Briefcase size={21} />
                 </div>
+
                 <div>
                   <h2 className="font-bold text-slate-900">
                     Required Skills
@@ -357,6 +467,7 @@ function CreateProject() {
                     className="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700"
                   >
                     {skill}
+
                     <button
                       type="button"
                       onClick={() => removeSkill(skill)}
@@ -381,6 +492,7 @@ function CreateProject() {
                   placeholder="e.g. React, Marketing, UI Design"
                   className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500"
                 />
+
                 <button
                   type="button"
                   onClick={addSkill}
@@ -398,6 +510,7 @@ function CreateProject() {
                 <div className="rounded-xl bg-amber-50 p-3 text-amber-600">
                   <Users size={21} />
                 </div>
+
                 <div>
                   <h2 className="font-bold text-slate-900">
                     Open Positions
@@ -488,6 +601,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Project Stage
                   </label>
+
                   <select
                     name="stage"
                     value={project.stage}
@@ -506,6 +620,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Time Commitment
                   </label>
+
                   <select
                     name="commitment"
                     value={project.commitment}
@@ -523,6 +638,7 @@ function CreateProject() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Location
                   </label>
+
                   <input
                     name="location"
                     value={project.location}
@@ -533,6 +649,13 @@ function CreateProject() {
                 </div>
               </div>
             </section>
+
+            {/* Error message */}
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                {error}
+              </div>
+            )}
 
             {/* Submit */}
             <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
@@ -545,10 +668,11 @@ function CreateProject() {
 
               <button
                 type="submit"
-                className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-7 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+                disabled={loading}
+                className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-7 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Send size={17} />
-                Publish Project
+                {loading ? 'Publishing...' : 'Publish Project'}
               </button>
             </div>
           </form>

@@ -3,20 +3,23 @@ import pool from '../config/db.js';
 // Convert database rows into the format used by the frontend.
 function formatProject(row) {
   let details = {
-    summary: row.description,
+    summary: row.description || '',
     solution: '',
     goals: '',
-    location: '',
+    location: row.collaboration_type || '',
   };
 
   try {
-    const parsed = JSON.parse(row.description);
+    const parsed = JSON.parse(row.description || '');
 
-    if (parsed && typeof parsed === 'object' && parsed.summary) {
-      details = { ...details, ...parsed };
+    if (parsed && typeof parsed === 'object') {
+      details = {
+        ...details,
+        ...parsed,
+      };
     }
   } catch {
-    // Older projects may contain plain text descriptions.
+    // Keep plain-text descriptions unchanged.
   }
 
   return {
@@ -24,6 +27,7 @@ function formatProject(row) {
     title: row.project_name,
     name: row.project_name,
     description: details.summary,
+    problem: row.problem_statement || '',
     solution: details.solution,
     goals: details.goals,
     location: details.location || 'Not specified',
@@ -31,7 +35,7 @@ function formatProject(row) {
     stage: row.project_stage || 'Idea',
     commitment: row.expected_commitment || 'Flexible',
     status: 'Recruiting',
-    founder: row.founder_name,
+    founder: row.founder_name || 'Founder',
     ownerId: row.owner_id,
     members: Number(row.member_count || 0),
     requiredMembers: Number(row.required_members || 0),
@@ -42,18 +46,21 @@ function formatProject(row) {
   };
 }
 
-// Reusable query for project lists.
+// Common query used by both project listing APIs.
 const projectListQuery = `
   SELECT
     p.id,
     p.owner_id,
     p.project_name,
     p.description,
+    p.problem_statement,
     p.industry,
     p.project_stage,
+    p.collaboration_type,
     p.expected_commitment,
     p.created_at,
-    pr.full_name AS founder_name,
+
+    COALESCE(pr.full_name, u.email, 'Founder') AS founder_name,
 
     COALESCE(
       (
@@ -71,8 +78,7 @@ const projectListQuery = `
           json_build_object(
             'id', r.id,
             'title', r.role_name,
-            'openings', r.required_members,
-            'description', r.description
+            'openings', r.required_members
           )
           ORDER BY r.id
         )
@@ -98,12 +104,14 @@ const projectListQuery = `
     ) AS member_count
 
   FROM projects p
-  JOIN profiles pr ON pr.user_id = p.owner_id
+  LEFT JOIN profiles pr ON pr.user_id = p.owner_id
+  LEFT JOIN users u ON u.id = p.owner_id
 `;
 
 // CREATE PROJECT
 export const createProject = async (req, res) => {
-  const client = await pool.connect();
+  let client;
+  let transactionStarted = false;
 
   try {
     const {
@@ -120,7 +128,13 @@ export const createProject = async (req, res) => {
       roles,
     } = req.body;
 
-    if (!title?.trim() || !category || !description?.trim() || !problem?.trim()) {
+    if (
+      !title?.trim() ||
+      !category ||
+      !description?.trim() ||
+      !problem?.trim() ||
+      !solution?.trim()
+    ) {
       return res.status(400).json({
         success: false,
         message: 'Please complete all required project fields.',
@@ -141,12 +155,14 @@ export const createProject = async (req, res) => {
       });
     }
 
-    const cleanSkills = [...new Set(
-      skills
-        .filter((skill) => typeof skill === 'string')
-        .map((skill) => skill.trim())
-        .filter(Boolean)
-    )];
+    const cleanSkills = [
+      ...new Set(
+        skills
+          .filter((skill) => typeof skill === 'string')
+          .map((skill) => skill.trim())
+          .filter(Boolean)
+      ),
+    ];
 
     if (cleanSkills.length === 0) {
       return res.status(400).json({
@@ -165,9 +181,9 @@ export const createProject = async (req, res) => {
     if (
       cleanRoles.some(
         (role) =>
+          !Number.isInteger(role.openings) ||
           role.openings < 1 ||
-          role.openings > 5 ||
-          !Number.isInteger(role.openings)
+          role.openings > 5
       )
     ) {
       return res.status(400).json({
@@ -176,15 +192,18 @@ export const createProject = async (req, res) => {
       });
     }
 
-    // Store all form details without requiring new database columns.
+    // Store additional form details in the existing description column.
     const savedDescription = JSON.stringify({
       summary: description.trim(),
-      solution: solution?.trim() || '',
+      solution: solution.trim(),
       goals: goals?.trim() || '',
       location: location?.trim() || '',
     });
 
+    client = await pool.connect();
+
     await client.query('BEGIN');
+    transactionStarted = true;
 
     const projectResult = await client.query(
       `INSERT INTO projects (
@@ -213,15 +232,19 @@ export const createProject = async (req, res) => {
 
     const projectId = projectResult.rows[0].id;
 
-    // Add project owner as the first team member.
+    // Add the founder as the first project member.
     await client.query(
-      `INSERT INTO project_members (project_id, user_id, role_name)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (project_id, user_id) DO NOTHING`,
+      `INSERT INTO project_members (
+        project_id,
+        user_id,
+        role_name
+      )
+      VALUES ($1, $2, $3)
+      ON CONFLICT (project_id, user_id) DO NOTHING`,
       [projectId, req.user.id, 'Founder']
     );
 
-    // Save skills and their project relationships.
+    // Save project skills.
     for (const skill of cleanSkills) {
       const skillResult = await client.query(
         `INSERT INTO skills (name)
@@ -254,6 +277,7 @@ export const createProject = async (req, res) => {
     }
 
     await client.query('COMMIT');
+    transactionStarted = false;
 
     return res.status(201).json({
       success: true,
@@ -261,7 +285,9 @@ export const createProject = async (req, res) => {
       projectId,
     });
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (client && transactionStarted) {
+      await client.query('ROLLBACK');
+    }
 
     console.error('Create project error:', error);
 
@@ -270,11 +296,13 @@ export const createProject = async (req, res) => {
       message: 'Unable to create project.',
     });
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 };
 
-// GET ALL PROJECTS CREATED BY OTHER USERS
+// GET PROJECTS CREATED BY OTHER USERS
 export const getProjects = async (req, res) => {
   try {
     const result = await pool.query(
