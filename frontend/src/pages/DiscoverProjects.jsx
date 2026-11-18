@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import DashboardNavbar from '../components/DashboardNavbar';
 import { Link } from 'react-router-dom';
 import {
   Search,
@@ -151,9 +153,10 @@ function DiscoverProjects() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 lg:ml-64">
-      <div className="mx-auto max-w-7xl">
+      <Sidebar />
+      <DashboardNavbar />
 
-        {/* Header */}
+      <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
@@ -173,7 +176,6 @@ function DiscoverProjects() {
           </Link>
         </div>
 
-        {/* Search */}
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex flex-col gap-4 md:flex-row">
             <div className="flex flex-1 items-center gap-3 rounded-xl border border-slate-200 px-4 py-3">
@@ -209,7 +211,6 @@ function DiscoverProjects() {
             </div>
           </div>
 
-          {/* Categories */}
           <div className="mt-5">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
               Categories
@@ -233,7 +234,6 @@ function DiscoverProjects() {
           </div>
         </div>
 
-        {/* Results Header */}
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="font-bold text-slate-900">
@@ -256,7 +256,6 @@ function DiscoverProjects() {
           )}
         </div>
 
-        {/* Project Cards */}
         {filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
             {filteredProjects.map((project) => {
@@ -267,7 +266,6 @@ function DiscoverProjects() {
                   key={project.id}
                   className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-md"
                 >
-                  {/* Card Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
@@ -295,12 +293,10 @@ function DiscoverProjects() {
                     </span>
                   </div>
 
-                  {/* Description */}
                   <p className="mt-5 text-sm leading-6 text-slate-600">
                     {project.description}
                   </p>
 
-                  {/* Skills */}
                   <div className="mt-5">
                     <p className="mb-2 text-xs font-semibold text-slate-500">
                       Required Skills
@@ -318,7 +314,6 @@ function DiscoverProjects() {
                     </div>
                   </div>
 
-                  {/* Project Information */}
                   <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
                     <div className="flex items-center gap-2 text-xs text-slate-500">
                       <Users size={16} />
@@ -346,7 +341,6 @@ function DiscoverProjects() {
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                     <Link
                       to="/project-details"
