@@ -2,6 +2,7 @@
 import pool from '../config/db.js';
 import bcrypt from 'bcrypt';
 
+// SIGNUP API
 export const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -38,24 +39,38 @@ export const signup = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user into database
+    // Create user account
     const result = await pool.query(
-      `INSERT INTO users (name, email, password)
-       VALUES ($1, $2, $3)
-       RETURNING id, name, email, created_at`,
-      [name.trim(), email.toLowerCase(), hashedPassword]
+      `INSERT INTO users (email, password_hash)
+       VALUES ($1, $2)
+       RETURNING id, email, created_at`,
+      [email.toLowerCase(), hashedPassword]
     );
 
-    res.status(201).json({
+    const user = result.rows[0];
+
+    // Create user profile
+    await pool.query(
+      `INSERT INTO profiles (user_id, full_name)
+       VALUES ($1, $2)`,
+      [user.id, name.trim()]
+    );
+
+    return res.status(201).json({
       success: true,
       message: 'Account created successfully',
-      user: result.rows[0],
+      user: {
+        id: user.id,
+        name: name.trim(),
+        email: user.email,
+        created_at: user.created_at,
+      },
     });
 
   } catch (error) {
     console.error('Signup error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error during signup',
     });
