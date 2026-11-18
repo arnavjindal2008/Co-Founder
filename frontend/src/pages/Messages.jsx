@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import DashboardNavbar from '../components/DashboardNavbar';
 import {
   Search,
   Send,
@@ -136,6 +138,9 @@ function Messages() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 lg:ml-64">
+      <Sidebar />
+      <DashboardNavbar />
+
       <div className="mx-auto max-w-7xl">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">
@@ -190,6 +195,7 @@ function Messages() {
                     >
                       {chat.avatar}
                     </div>
+
                     {chat.online && (
                       <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
                     )}
@@ -204,9 +210,11 @@ function Messages() {
                         {chat.time}
                       </span>
                     </div>
+
                     <p className="mb-1 text-xs text-slate-500">
                       {chat.role}
                     </p>
+
                     <p className="truncate text-xs text-slate-500">
                       {chat.lastMessage}
                     </p>
@@ -224,11 +232,7 @@ function Messages() {
 
           {/* Active Chat */}
           {activeChat ? (
-            <div
-              className={`${
-                activeChat ? 'flex' : 'hidden'
-              } flex-col md:col-span-2`}
-            >
+            <div className="flex flex-col md:col-span-2">
               {/* Chat Header */}
               <div className="flex items-center justify-between border-b border-slate-100 p-4">
                 <div className="flex items-center gap-3">

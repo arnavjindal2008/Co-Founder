@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 import {
   LayoutDashboard,
@@ -18,6 +19,7 @@ import {
 
 function Sidebar() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navigation = [
@@ -34,7 +36,8 @@ function Sidebar() {
 
   function handleLogout() {
     setMobileOpen(false);
-    navigate('/login');
+    logout();
+    navigate('/login', { replace: true });
   }
 
   function closeMenu() {
@@ -56,8 +59,11 @@ function Sidebar() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
             <Rocket size={22} />
           </div>
+
           <div>
-            <h1 className="text-xl font-bold text-slate-900">CoFounder</h1>
+            <h1 className="text-xl font-bold text-slate-900">
+              CoFounder
+            </h1>
             <p className="text-xs text-slate-400">Build together</p>
           </div>
         </div>
@@ -72,7 +78,11 @@ function Sidebar() {
               const Icon = item.icon;
 
               return (
-                <NavLink key={item.path} to={item.path} className={linkClass}>
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={linkClass}
+                >
                   <Icon size={19} />
                   {item.name}
                 </NavLink>
@@ -110,7 +120,7 @@ function Sidebar() {
         <Menu size={23} />
       </button>
 
-      {/* Mobile Overlay */}
+      {/* Mobile Menu */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-50 bg-slate-950/40 lg:hidden"
@@ -125,11 +135,14 @@ function Sidebar() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
                   <Rocket size={22} />
                 </div>
+
                 <div>
                   <h1 className="text-xl font-bold text-slate-900">
                     CoFounder
                   </h1>
-                  <p className="text-xs text-slate-400">Build together</p>
+                  <p className="text-xs text-slate-400">
+                    Build together
+                  </p>
                 </div>
               </div>
 
