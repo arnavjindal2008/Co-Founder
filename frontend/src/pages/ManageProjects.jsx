@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import DashboardNavbar from '../components/DashboardNavbar';
 import { Link } from 'react-router-dom';
 import {
   Plus,
@@ -59,8 +61,10 @@ function ManageProjects() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 lg:ml-64">
+      <Sidebar />
+      <DashboardNavbar />
+
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
@@ -80,7 +84,6 @@ function ManageProjects() {
           </Link>
         </div>
 
-        {/* Statistics */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex items-center justify-between">
@@ -132,12 +135,9 @@ function ManageProjects() {
           </div>
         </div>
 
-        {/* Project List */}
         <div className="overflow-visible rounded-2xl border border-slate-200 bg-white">
           <div className="border-b border-slate-100 p-5">
-            <h2 className="font-bold text-slate-900">
-              Your Projects
-            </h2>
+            <h2 className="font-bold text-slate-900">Your Projects</h2>
             <p className="mt-1 text-sm text-slate-500">
               View and manage all the projects you have created.
             </p>
@@ -210,9 +210,7 @@ function ManageProjects() {
                       <button
                         onClick={() =>
                           setActiveMenu(
-                            activeMenu === project.id
-                              ? null
-                              : project.id
+                            activeMenu === project.id ? null : project.id
                           )
                         }
                         className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
@@ -232,9 +230,7 @@ function ManageProjects() {
                           </Link>
 
                           <button
-                            onClick={() => {
-                              setActiveMenu(null);
-                            }}
+                            onClick={() => setActiveMenu(null)}
                             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
                           >
                             <Pencil size={16} />
