@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model applications {
+  id                  Int      @id @default(autoincrement())
+  project_id          Int
+  applicant_id        Int
+  desired_role        String?  @db.VarChar(150)
+  application_message String?
+  status              String   @default("pending") @db.VarChar(20)
+  created_at          DateTime @default(now()) @db.Timestamp(6)
+  updated_at          DateTime @default(now()) @db.Timestamp(6)
+  users               users    @relation(fields: [applicant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  projects            projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([project_id, applicant_id])
+  @@index([applicant_id], map: "idx_applications_applicant_id")
+  @@index([project_id], map: "idx_applications_project_id")
+  @@index([status], map: "idx_applications_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model connections {
+  id                                    Int      @id @default(autoincrement())
+  requester_id                          Int
+  recipient_id                          Int
+  status                                String   @default("pending") @db.VarChar(20)
+  created_at                            DateTime @default(now()) @db.Timestamp(6)
+  updated_at                            DateTime @default(now()) @db.Timestamp(6)
+  users_connections_recipient_idTousers users    @relation("connections_recipient_idTousers", fields: [recipient_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_connections_requester_idTousers users    @relation("connections_requester_idTousers", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([requester_id, recipient_id])
+  @@index([recipient_id], map: "idx_connections_recipient_id")
+  @@index([requester_id], map: "idx_connections_requester_id")
+  @@index([status], map: "idx_connections_status")
+}
+
+model interests {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique @db.VarChar(100)
+  created_at     DateTime         @default(now()) @db.Timestamp(6)
+  user_interests user_interests[]
+}
+
+model notifications {
+  id                                  Int      @id @default(autoincrement())
+  user_id                             Int
+  actor_id                            Int?
+  notification_type                   String   @db.VarChar(100)
+  message                             String
+  is_read                             Boolean  @default(false)
+  created_at                          DateTime @default(now()) @db.Timestamp(6)
+  users_notifications_actor_idTousers users?   @relation("notifications_actor_idTousers", fields: [actor_id], references: [id], onUpdate: NoAction)
+  users_notifications_user_idTousers  users    @relation("notifications_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_notifications_user_id")
+}
+
+model profiles {
+  id                        Int      @id @default(autoincrement())
+  user_id                   Int      @unique
+  full_name                 String   @db.VarChar(150)
+  profile_picture           String?
+  headline                  String?  @db.VarChar(255)
+  bio                       String?
+  education                 String?
+  experience                String?
+  github_url                String?
+  portfolio_url             String?
+  availability              String?  @db.VarChar(100)
+  collaboration_preferences String?
+  created_at                DateTime @default(now()) @db.Timestamp(6)
+  updated_at                DateTime @default(now()) @db.Timestamp(6)
+  users                     users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_profiles_user_id")
+}
+
+model project_members {
+  id         Int      @id @default(autoincrement())
+  project_id Int
+  user_id    Int
+  role_name  String?  @db.VarChar(150)
+  joined_at  DateTime @default(now()) @db.Timestamp(6)
+  projects   projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([project_id, user_id])
+  @@index([project_id], map: "idx_project_members_project_id")
+  @@index([user_id], map: "idx_project_members_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model project_roles {
+  id               Int      @id @default(autoincrement())
+  project_id       Int
+  role_name        String   @db.VarChar(150)
+  description      String?
+  required_members Int      @default(1)
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  updated_at       DateTime @default(now()) @db.Timestamp(6)
+  projects         projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([project_id], map: "idx_project_roles_project_id")
+}
+
+model project_skills {
+  id         Int      @id @default(autoincrement())
+  project_id Int
+  skill_id   Int
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  projects   projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  skills     skills   @relation(fields: [skill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([project_id, skill_id])
+  @@index([project_id], map: "idx_project_skills_project_id")
+  @@index([skill_id], map: "idx_project_skills_skill_id")
+}
+
+model projects {
+  id                  Int               @id @default(autoincrement())
+  owner_id            Int
+  project_name        String            @db.VarChar(200)
+  description         String
+  problem_statement   String?
+  industry            String?           @db.VarChar(150)
+  project_stage       String?           @db.VarChar(100)
+  collaboration_type  String?           @db.VarChar(100)
+  expected_commitment String?           @db.VarChar(150)
+  created_at          DateTime          @default(now()) @db.Timestamp(6)
+  updated_at          DateTime          @default(now()) @db.Timestamp(6)
+  applications        applications[]
+  project_members     project_members[]
+  project_roles       project_roles[]
+  project_skills      project_skills[]
+  users               users             @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
+
+  @@index([industry], map: "idx_projects_industry")
+  @@index([owner_id], map: "idx_projects_owner_id")
+  @@index([project_stage], map: "idx_projects_stage")
+}
+
+model skills {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique @db.VarChar(100)
+  created_at     DateTime         @default(now()) @db.Timestamp(6)
+  project_skills project_skills[]
+  user_skills    user_skills[]
+}
+
+model user_interests {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  interest_id Int
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  interests   interests @relation(fields: [interest_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, interest_id])
+  @@index([interest_id], map: "idx_user_interests_interest_id")
+  @@index([user_id], map: "idx_user_interests_user_id")
+}
+
+model user_skills {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  skill_id   Int
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  skills     skills   @relation(fields: [skill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, skill_id])
+  @@index([skill_id], map: "idx_user_skills_skill_id")
+  @@index([user_id], map: "idx_user_skills_user_id")
+}
+
+model users {
+  id                                          Int               @id @default(autoincrement())
+  email                                       String            @unique @db.VarChar(255)
+  password_hash                               String
+  email_verified                              Boolean           @default(false)
+  created_at                                  DateTime          @default(now()) @db.Timestamp(6)
+  updated_at                                  DateTime          @default(now()) @db.Timestamp(6)
+  applications                                applications[]
+  connections_connections_recipient_idTousers connections[]     @relation("connections_recipient_idTousers")
+  connections_connections_requester_idTousers connections[]     @relation("connections_requester_idTousers")
+  notifications_notifications_actor_idTousers notifications[]   @relation("notifications_actor_idTousers")
+  notifications_notifications_user_idTousers  notifications[]   @relation("notifications_user_idTousers")
+  profiles                                    profiles?
+  project_members                             project_members[]
+  projects                                    projects[]
+  user_interests                              user_interests[]
+  user_skills                                 user_skills[]
+}
