@@ -1,7 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import pool from './config/db.js';
+
 import authRoutes from './routes/authRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
 
 dotenv.config();
 
@@ -9,10 +11,9 @@ const app = express();
 
 app.use(express.json());
 
-// Authentication routes
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
-// Home route
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -20,7 +21,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Database health check
 app.get('/api/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
