@@ -10,6 +10,7 @@ import skillRoutes from './routes/skillRoutes.js';
 import interestRoutes from './routes/interestRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import connectionRoutes from './routes/connectionRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/interests', interestRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/connections', connectionRoutes);
+app.use('/api/applications', applicationRoutes);
 
 // Home route
 app.get('/', (req, res) => {
