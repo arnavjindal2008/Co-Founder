@@ -11,6 +11,9 @@ import interestRoutes from './routes/interestRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import connectionRoutes from './routes/connectionRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
+import teamRoutes from './routes/teamRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import matchingRoutes from './routes/matchingRoutes.js';
 
 const app = express();
 
@@ -25,6 +28,9 @@ app.use('/api/interests', interestRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/matches', matchingRoutes);
 
 // Home route
 app.get('/', (req, res) => {
