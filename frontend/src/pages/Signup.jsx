@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Rocket, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const googleButtonRef = useRef(null);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -11,8 +15,94 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const handleGoogleSignup = async (response) => {
+    try {
+      setError('');
+      setGoogleLoading(true);
+
+      const result = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          credential: response.credential,
+        }),
+      });
+
+      const data = await result.json();
+
+      if (!result.ok) {
+        setError(data.message || 'Google signup failed');
+        return;
+      }
+
+      login(data.user, data.token);
+      navigate('/dashboard');
+
+    } catch (error) {
+      console.error('Google signup error:', error);
+      setError('Unable to connect to server. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // Initialize Google Sign-In
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+      setError('Google Client ID is missing from frontend .env');
+      return;
+    }
+
+    const initializeGoogle = () => {
+      if (!window.google || !googleButtonRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleSignup,
+      });
+
+      window.google.accounts.id.renderButton(
+        googleButtonRef.current,
+        {
+          theme: 'outline',
+          size: 'large',
+          shape: 'rectangular',
+          text: 'signup_with',
+          width: 360,
+        }
+      );
+    };
+
+    if (window.google?.accounts?.id) {
+      initializeGoogle();
+      return;
+    }
+
+    let script = document.getElementById('google-identity-script');
+
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'google-identity-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    script.addEventListener('load', initializeGoogle);
+
+    return () => {
+      script.removeEventListener('load', initializeGoogle);
+    };
+  }, []);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -70,6 +160,7 @@ const Signup = () => {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-lg">
 
+        {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-9">
           <Rocket size={29} className="text-violet-600" />
           <span className="text-3xl font-bold text-violet-600">
@@ -95,8 +186,27 @@ const Signup = () => {
             Join CoFounder and find your perfect co-founder.
           </p>
 
+          {/* Google Sign Up */}
+          <div className="flex flex-col items-center gap-3 mb-6">
+            <div ref={googleButtonRef}></div>
+
+            {googleLoading && (
+              <p className="text-sm text-violet-600">
+                Creating your account...
+              </p>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-slate-200"></div>
+            <span className="text-sm text-slate-400">OR</span>
+            <div className="flex-1 h-px bg-slate-200"></div>
+          </div>
+
           <form onSubmit={handleSignup} className="space-y-5">
 
+            {/* Name */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Full Name
@@ -112,6 +222,7 @@ const Signup = () => {
               />
             </div>
 
+            {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Email Address
@@ -127,6 +238,7 @@ const Signup = () => {
               />
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Password
@@ -152,6 +264,7 @@ const Signup = () => {
               </div>
             </div>
 
+            {/* Confirm Password */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Confirm Password
@@ -167,18 +280,21 @@ const Signup = () => {
               />
             </div>
 
+            {/* Error */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg p-3 text-sm">
                 {error}
               </div>
             )}
 
+            {/* Success */}
             {success && (
               <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 text-sm">
                 {success}
               </div>
             )}
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}

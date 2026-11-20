@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Rocket, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -7,11 +7,99 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const googleButtonRef = useRef(null);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleGoogleLogin = async (response) => {
+    try {
+      setError('');
+      setGoogleLoading(true);
+
+      const result = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          credential: response.credential,
+        }),
+      });
+
+      const data = await result.json();
+
+      if (!result.ok) {
+        setError(data.message || 'Google login failed');
+        return;
+      }
+
+      login(data.user, data.token);
+      navigate('/dashboard');
+
+    } catch (error) {
+      console.error('Google login error:', error);
+      setError('Unable to connect to server. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // Initialize Google Sign-In
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+      setError('Google Client ID is missing from frontend .env');
+      return;
+    }
+
+    const initializeGoogle = () => {
+      if (!window.google || !googleButtonRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleLogin,
+      });
+
+      window.google.accounts.id.renderButton(
+        googleButtonRef.current,
+        {
+          theme: 'outline',
+          size: 'large',
+          shape: 'rectangular',
+          text: 'continue_with',
+          width: 360,
+        }
+      );
+    };
+
+    if (window.google?.accounts?.id) {
+      initializeGoogle();
+      return;
+    }
+
+    let script = document.getElementById('google-identity-script');
+
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'google-identity-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    script.addEventListener('load', initializeGoogle);
+
+    return () => {
+      script.removeEventListener('load', initializeGoogle);
+    };
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,10 +126,7 @@ const Login = () => {
         return;
       }
 
-      // Save user and token in AuthContext
       login(data.user, data.token);
-
-      // Redirect to dashboard
       navigate('/dashboard');
 
     } catch (error) {
@@ -82,6 +167,24 @@ const Login = () => {
           <p className="text-slate-500 mb-9">
             Sign in to discover people and build something great.
           </p>
+
+          {/* Google Sign In */}
+          <div className="flex flex-col items-center gap-3 mb-6">
+            <div ref={googleButtonRef}></div>
+
+            {googleLoading && (
+              <p className="text-sm text-violet-600">
+                Signing in with Google...
+              </p>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-slate-200"></div>
+            <span className="text-sm text-slate-400">OR</span>
+            <div className="flex-1 h-px bg-slate-200"></div>
+          </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
 
