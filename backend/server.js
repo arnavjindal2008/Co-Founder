@@ -9,6 +9,7 @@ import projectRoutes from './routes/projectRoutes.js';
 import skillRoutes from './routes/skillRoutes.js';
 import interestRoutes from './routes/interestRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import connectionRoutes from './routes/connectionRoutes.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/interests', interestRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/connections', connectionRoutes);
 
 // Home route
 app.get('/', (req, res) => {
