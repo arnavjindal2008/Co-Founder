@@ -1,7 +1,10 @@
 import 'dotenv/config';
 import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 import pool from './config/db.js';
+import initializeSocket from './socket/socketServer.js';
 
 import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
@@ -14,10 +17,26 @@ import applicationRoutes from './routes/applicationRoutes.js';
 import teamRoutes from './routes/teamRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import matchingRoutes from './routes/matchingRoutes.js';
+import conversationRoutes from './routes/conversationRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 
 const app = express();
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        methods: ['GET', 'POST', 'PATCH']
+    }
+});
+
+// Make Socket.IO available inside Express controllers.
+app.set('io', io);
 
 app.use(express.json());
+
+// Initialize Socket.IO
+initializeSocket(io);
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -31,6 +50,8 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/matches', matchingRoutes);
+app.use('/api/conversations', conversationRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Home route
 app.get('/', (req, res) => {
@@ -62,6 +83,6 @@ app.get('/api/health', async (req, res) => {
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

@@ -7,7 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model applications {
   id                  Int      @id @default(autoincrement())
   project_id          Int
@@ -17,6 +16,7 @@ model applications {
   status              String   @default("pending") @db.VarChar(20)
   created_at          DateTime @default(now()) @db.Timestamp(6)
   updated_at          DateTime @default(now()) @db.Timestamp(6)
+
   users               users    @relation(fields: [applicant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   projects            projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -26,7 +26,6 @@ model applications {
   @@index([status], map: "idx_applications_status")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model connections {
   id                                    Int      @id @default(autoincrement())
   requester_id                          Int
@@ -34,6 +33,7 @@ model connections {
   status                                String   @default("pending") @db.VarChar(20)
   created_at                            DateTime @default(now()) @db.Timestamp(6)
   updated_at                            DateTime @default(now()) @db.Timestamp(6)
+
   users_connections_recipient_idTousers users    @relation("connections_recipient_idTousers", fields: [recipient_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users_connections_requester_idTousers users    @relation("connections_requester_idTousers", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -43,11 +43,44 @@ model connections {
   @@index([status], map: "idx_connections_status")
 }
 
+model conversations {
+  id          Int      @id @default(autoincrement())
+  user_one_id Int
+  user_two_id Int
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+
+  users_conversations_user_one_idTousers users @relation("conversations_user_one_idTousers", fields: [user_one_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_conversations_user_two_idTousers users @relation("conversations_user_two_idTousers", fields: [user_two_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  messages messages[]
+
+  @@unique([user_one_id, user_two_id])
+  @@index([user_one_id], map: "idx_conversations_user_one")
+  @@index([user_two_id], map: "idx_conversations_user_two")
+}
+
 model interests {
   id             Int              @id @default(autoincrement())
   name           String           @unique @db.VarChar(100)
   created_at     DateTime         @default(now()) @db.Timestamp(6)
   user_interests user_interests[]
+}
+
+model messages {
+  id              Int           @id @default(autoincrement())
+  conversation_id Int
+  sender_id       Int
+  content         String
+  created_at      DateTime      @default(now()) @db.Timestamp(6)
+  read_at         DateTime?     @db.Timestamp(6)
+
+  conversations conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users         @relation("messages_sender_idTousers", fields: [sender_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([conversation_id, created_at(sort: Desc)], map: "idx_messages_conversation_created")
+  @@index([sender_id], map: "idx_messages_sender")
+  @@index([conversation_id, read_at], map: "idx_messages_unread")
 }
 
 model notifications {
@@ -58,6 +91,7 @@ model notifications {
   message                             String
   is_read                             Boolean  @default(false)
   created_at                          DateTime @default(now()) @db.Timestamp(6)
+
   users_notifications_actor_idTousers users?   @relation("notifications_actor_idTousers", fields: [actor_id], references: [id], onUpdate: NoAction)
   users_notifications_user_idTousers  users    @relation("notifications_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -79,6 +113,7 @@ model profiles {
   collaboration_preferences String?
   created_at                DateTime @default(now()) @db.Timestamp(6)
   updated_at                DateTime @default(now()) @db.Timestamp(6)
+
   users                     users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id], map: "idx_profiles_user_id")
@@ -90,6 +125,7 @@ model project_members {
   user_id    Int
   role_name  String?  @db.VarChar(150)
   joined_at  DateTime @default(now()) @db.Timestamp(6)
+
   projects   projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -98,7 +134,6 @@ model project_members {
   @@index([user_id], map: "idx_project_members_user_id")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model project_roles {
   id               Int      @id @default(autoincrement())
   project_id       Int
@@ -107,6 +142,7 @@ model project_roles {
   required_members Int      @default(1)
   created_at       DateTime @default(now()) @db.Timestamp(6)
   updated_at       DateTime @default(now()) @db.Timestamp(6)
+
   projects         projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([project_id], map: "idx_project_roles_project_id")
@@ -117,6 +153,7 @@ model project_skills {
   project_id Int
   skill_id   Int
   created_at DateTime @default(now()) @db.Timestamp(6)
+
   projects   projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   skills     skills   @relation(fields: [skill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -137,10 +174,12 @@ model projects {
   expected_commitment String?           @db.VarChar(150)
   created_at          DateTime          @default(now()) @db.Timestamp(6)
   updated_at          DateTime          @default(now()) @db.Timestamp(6)
+
   applications        applications[]
   project_members     project_members[]
   project_roles       project_roles[]
   project_skills      project_skills[]
+
   users               users             @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
 
   @@index([industry], map: "idx_projects_industry")
@@ -152,6 +191,7 @@ model skills {
   id             Int              @id @default(autoincrement())
   name           String           @unique @db.VarChar(100)
   created_at     DateTime         @default(now()) @db.Timestamp(6)
+
   project_skills project_skills[]
   user_skills    user_skills[]
 }
@@ -161,6 +201,7 @@ model user_interests {
   user_id     Int
   interest_id Int
   created_at  DateTime  @default(now()) @db.Timestamp(6)
+
   interests   interests @relation(fields: [interest_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -174,6 +215,7 @@ model user_skills {
   user_id    Int
   skill_id   Int
   created_at DateTime @default(now()) @db.Timestamp(6)
+
   skills     skills   @relation(fields: [skill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -187,13 +229,22 @@ model users {
   email                                       String            @unique @db.VarChar(255)
   password_hash                               String
   email_verified                              Boolean           @default(false)
+  last_seen_at                                DateTime?         @db.Timestamp(6)
   created_at                                  DateTime          @default(now()) @db.Timestamp(6)
   updated_at                                  DateTime          @default(now()) @db.Timestamp(6)
+
   applications                                applications[]
   connections_connections_recipient_idTousers connections[]     @relation("connections_recipient_idTousers")
   connections_connections_requester_idTousers connections[]     @relation("connections_requester_idTousers")
+
   notifications_notifications_actor_idTousers notifications[]   @relation("notifications_actor_idTousers")
   notifications_notifications_user_idTousers  notifications[]   @relation("notifications_user_idTousers")
+
+  conversations_conversations_user_one_idTousers conversations[] @relation("conversations_user_one_idTousers")
+  conversations_conversations_user_two_idTousers conversations[] @relation("conversations_user_two_idTousers")
+
+  messages                                    messages[]        @relation("messages_sender_idTousers")
+
   profiles                                    profiles?
   project_members                             project_members[]
   projects                                    projects[]
